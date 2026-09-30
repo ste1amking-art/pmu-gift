@@ -28,7 +28,7 @@ html { background: var(--night); scroll-behavior: smooth; }
 body {
   margin: 0; background: var(--night); color: var(--cream);
   font-family: var(--f-body); font-weight: 300; font-size: 16px; line-height: 1.65;
-  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden; overflow-x: clip; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
 }
 ::selection { background: var(--champagne); color: var(--night); }
 a { color: inherit; }
@@ -310,6 +310,36 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
 .chips li:nth-child(3) a { transition-delay: .1s; }
 .chips li:nth-child(4) a { transition-delay: .15s; }
 @media (max-width: 640px) { .social { justify-items: center; } .chips { justify-content: center; } }
+
+/* ===== Лёгкий режим для телефонов и iOS: только анимации, которые считает видеокарта ===== */
+.glow { display: none; }
+.track { will-change: transform; transform: translateZ(0); }
+.scanline { will-change: transform; }
+@media (hover: none), (pointer: coarse), (max-width: 900px) {
+  /* зернистость поверх всей страницы перерисовывала экран каждый кадр */
+  .grain { display: none; }
+  /* свет по меху: вместо перерисовки маски — неподвижное пятно + «дыхание» прозрачностью и мягкий блик, который двигается трансформом */
+  .fur-lit { --lx: 62%; --ly: 38%; will-change: opacity; animation: breathe 6s ease-in-out infinite; }
+  .glow { display: block; position: absolute; z-index: -1; left: 50%; top: 40%; width: 90vw; height: 90vw; margin: -45vw 0 0 -45vw;
+    border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(255,214,160,.22), rgba(255,214,160,0) 65%);
+    will-change: transform; animation: roam 14s ease-in-out infinite alternate; }
+  /* цифры «10 000»: без перерисовки фона внутри текста и тяжёлой тени */
+  .figure { animation: none; filter: brightness(1.45) saturate(1.1); background-position: 50% 50%; }
+  /* появление заголовка без размытия (blur на iPhone тормозит) */
+  .hero h1 .l { animation-name: rise-lite; }
+  /* размытие фона под плашками — дорогое на прокрутке */
+  nav.solid { background: rgba(13, 9, 6, .94); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .dock { background: rgba(26,18,12,.96); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .chips a { background: rgba(26,18,12,.92); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* 3D-наклон карты за пальцем не нужен, остаётся переворот */
+  .glare { opacity: .45; }
+  .bm-page { will-change: transform; }
+  .js .rv { transform: translateY(16px); }
+}
+@media (max-width: 640px) { .scroll-cue { display: none; } }
+@keyframes breathe { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@keyframes roam { 0% { transform: translate3d(-18vw, -6vh, 0); } 50% { transform: translate3d(14vw, 4vh, 0) scale(1.1); } 100% { transform: translate3d(-4vw, 10vh, 0) scale(.95); } }
+@keyframes rise-lite { from { transform: translateY(.35em); opacity: 0; } to { transform: none; opacity: 1; } }
 </style>
 
 <div class="grain" aria-hidden="true"></div>
@@ -322,6 +352,7 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
 <header class="hero gutter" id="top">
   <div class="fur" aria-hidden="true"></div>
   <div class="fur-lit" id="lit" aria-hidden="true"></div>
+  <div class="glow" aria-hidden="true"></div>
   <a class="hero-card" href="#card-sec" aria-label="Смотреть сертификат"><span>СЕРТИФИКАТ</span></a>
   <div class="hero-inner">
     <span class="eyebrow">Подарочный сертификат · перманентный макияж</span>
@@ -463,13 +494,20 @@ document.documentElement.classList.add('js');
     tx = (e.clientX - r.left) / r.width * 100; ty = (e.clientY - r.top) / r.height * 100; userMoved = true;
   });
   hero.addEventListener('pointerleave', function () { userMoved = false; });
+  var lite = matchMedia('(hover: none), (pointer: coarse), (max-width: 900px)').matches;
+  var heroVisible = true, running = false;
   function loop(now) {
+    if (!heroVisible || lite) { running = false; return; }
     if (!userMoved) { var t = (now - t0) / 1000; tx = 55 + Math.sin(t * .35) * 28; ty = 42 + Math.cos(t * .5) * 18; }
     cx += (tx - cx) * .06; cy += (ty - cy) * .06;
     lit.style.setProperty('--lx', cx + '%'); lit.style.setProperty('--ly', cy + '%');
     requestAnimationFrame(loop);
   }
-  if (!reduce) requestAnimationFrame(loop);
+  function startLoop() { if (!running && !lite) { running = true; requestAnimationFrame(loop); } }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) { heroVisible = es[0].isIntersecting; if (heroVisible) startLoop(); }).observe(hero);
+  }
+  startLoop();
 
   // Card: tilt + glare + flip
   var card = document.getElementById('card'), flipped = false;
@@ -518,7 +556,8 @@ document.documentElement.classList.add('js');
     var br = book.getBoundingClientRect();
     dock.classList.toggle('show', y > innerHeight * .6 && !(br.top < innerHeight && br.bottom > 0));
   }
-  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  var ticking = false;
+  addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; onScroll(); }); } }, { passive: true }); onScroll();
 
   // Copy phone
   var copy = document.getElementById('copy');
