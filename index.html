@@ -365,6 +365,33 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
   .bm-pocket h3 { font-size: 26px; margin-bottom: 10px; }
   .bm-pocket p { font-size: 15px; }
 }
+
+/* ===== Работает и без JavaScript (Telegram, быстрый просмотр iPhone) ===== */
+.side-radio { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.scene { position: relative; }
+.flip-hit { position: absolute; inset: 0; z-index: 5; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hit-f { display: none; }
+#sideB:checked ~ .scene .hit-b { display: none; }
+#sideB:checked ~ .scene .hit-f { display: block; }
+#sideB:checked ~ .scene .card { --flip: 180deg; }
+.seg { display: inline-grid; grid-template-columns: 1fr 1fr; }
+.seg label { position: relative; z-index: 1; color: var(--night); cursor: pointer; font: 500 12px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; padding: 12px 20px; border-radius: 999px; text-align: center; transition: color .4s; -webkit-tap-highlight-color: transparent; }
+.seg .seg-b { color: var(--smoke); }
+.seg .knob { width: calc(50% - 4px); transform: none; }
+#sideB:checked ~ .stage-copy .knob { transform: translateX(100%); }
+#sideB:checked ~ .stage-copy .seg-f { color: var(--smoke); }
+#sideB:checked ~ .stage-copy .seg-b { color: var(--night); }
+#sideF:focus-visible ~ .stage-copy .seg-f, #sideB:focus-visible ~ .stage-copy .seg-b { outline: 2px solid var(--cream); outline-offset: 2px; }
+summary.social-btn { list-style: none; -webkit-user-select: none; user-select: none; }
+summary.social-btn::-webkit-details-marker { display: none; }
+summary.social-btn::marker { content: ""; }
+.social[open] .social-btn svg { transform: rotate(180deg); }
+.social[open] .chips a { opacity: 1; transform: scale(1); pointer-events: auto; }
+html:not(.js) nav { background: #0d0906; border-bottom: 1px solid var(--seam); }
+html:not(.js) .copy { display: none; }
+@media (hover: none) {
+  html:not(.js) .bms .bm-page { transform: translateY(-8%) rotate(-1deg); filter: brightness(.9); }
+}
 /* ===== iPhone / iPad (Safari) ===== */
 @supports (-webkit-touch-callout: none) {
   /* смешивание цветов внутри 3D ломает переворот карты в Safari */
@@ -416,7 +443,11 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
 
 <section class="stage-sec gutter" id="card-sec">
   <div class="shell stage-grid">
+    <input class="side-radio" type="radio" name="side" id="sideF" checked>
+    <input class="side-radio" type="radio" name="side" id="sideB">
     <div class="scene">
+      <label class="flip-hit hit-b" for="sideB" aria-label="Показать оборот"></label>
+      <label class="flip-hit hit-f" for="sideF" aria-label="Показать лицевую сторону"></label>
       <div class="card" id="card" role="img" aria-label="Подарочный сертификат, лицевая сторона">
         <div class="face front">
           <div class="t"><b>СЕРТИФИКАТ</b><i>На исполнение бьюти желаний</i></div>
@@ -440,8 +471,8 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
       <p>Карта с леопардовой обложкой. На обороте — номинал, условия и QR-код для записи. Наведите курсор или коснитесь карты, чтобы рассмотреть её ближе.</p>
       <div class="seg" id="seg" role="group" aria-label="Сторона сертификата">
         <span class="knob" id="knob"></span>
-        <button type="button" aria-pressed="true" data-side="front">Лицевая</button>
-        <button type="button" aria-pressed="false" data-side="back">Оборот</button>
+        <label for="sideF" class="seg-f">Лицевая</label>
+        <label for="sideB" class="seg-b">Оборот</label>
       </div>
       <dl class="specs">
         <div><dt>Номинал</dt><dd>10 000 ₽</dd></div>
@@ -494,17 +525,17 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
         <a class="phone" id="phone" href="tel:+79827557889">+7 (982) 755-78-89</a>
         <button class="copy" type="button" id="copy">Скопировать номер</button>
       </div>
-      <div class="social" id="social">
-        <button class="social-btn" type="button" aria-expanded="false" aria-controls="chips">
+      <details class="social" id="social">
+        <summary class="social-btn">
           Связаться
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-        </button>
+        </summary>
         <ul class="chips" id="chips">
           <li><a href="tel:+79827557889"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>Позвонить</a></li>
           <li><a href="https://wa.me/79827557889" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l1.6-4.7A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c.3 2.2 2.3 4.3 4.5 4.6"/></svg></span>WhatsApp</a></li>
           <li><a href="https://t.me/+79827557889" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4L3 11l6 2.5L19 7l-7.5 8L18 20z"/></svg></span>Telegram</a></li>
         </ul>
-      </div>
+      </details>
     </div>
   </div>
 </section>
@@ -553,25 +584,10 @@ document.documentElement.classList.add('js');
   startLoop();
 
   // Card: tilt + glare + flip
-  var card = document.getElementById('card'), flipped = false;
-  var seg = document.getElementById('seg'), knob = document.getElementById('knob');
-  var btns = seg.querySelectorAll('button');
-  function placeKnob() {
-    var b = btns[flipped ? 1 : 0];
-    knob.style.width = b.offsetWidth + 'px';
-    knob.style.transform = 'translateX(' + (b.offsetLeft - 4) + 'px)';
-  }
-  function setSide(back) {
-    flipped = back;
-    card.style.setProperty('--flip', back ? '180deg' : '0deg');
-    card.setAttribute('aria-label', 'Подарочный сертификат, ' + (back ? 'оборотная' : 'лицевая') + ' сторона');
-    btns.forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.side === 'back') === back)); });
-    placeKnob();
-  }
-  btns.forEach(function (b) { b.addEventListener('click', function () { setSide(b.dataset.side === 'back'); }); });
-  card.addEventListener('click', function () { setSide(!flipped); });
-  addEventListener('resize', placeKnob); placeKnob();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeKnob);
+  var card = document.getElementById('card'), sideB = document.getElementById('sideB');
+  var flipped = false;
+  document.getElementById('sideF').addEventListener('change', function () { flipped = false; card.setAttribute('aria-label', 'Подарочный сертификат, лицевая сторона'); });
+  sideB.addEventListener('change', function () { flipped = true; card.setAttribute('aria-label', 'Подарочный сертификат, оборотная сторона'); });
 
   if (!reduce) {
     var scene = card.parentNode;
@@ -620,16 +636,11 @@ document.documentElement.classList.add('js');
 
   // Кнопка «Связаться»: раскрытие по наведению (мышь) и по нажатию (телефон)
   var soc = document.getElementById('social');
-  if (soc) {
-    var sb = soc.querySelector('.social-btn');
-    var setOpen = function (v) { soc.classList.toggle('open', v); sb.setAttribute('aria-expanded', v ? 'true' : 'false'); };
-    sb.addEventListener('click', function () { setOpen(!soc.classList.contains('open')); });
-    if (matchMedia('(hover: hover)').matches) {
-      soc.addEventListener('mouseenter', function () { setOpen(true); });
-      soc.addEventListener('mouseleave', function () { setOpen(false); });
-    }
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  if (soc && matchMedia('(hover: hover)').matches) {
+    soc.addEventListener('mouseenter', function () { soc.open = true; });
+    soc.addEventListener('mouseleave', function () { soc.open = false; });
   }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && soc) soc.open = false; });
 })();
 </script>
 
