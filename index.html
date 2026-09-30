@@ -210,10 +210,6 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
   .dock.show { transform: none; }
   .dock a { flex: 1; text-align: center; padding: 14px 10px; font-size: 12px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  html { scroll-behavior: auto; }
-}
 
 /* ===== Визитка: дополнения ===== */
 .js .rv { opacity: 0; transform: translateY(24px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
@@ -314,7 +310,6 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
 .chips li:nth-child(3) a { transition-delay: .1s; }
 .chips li:nth-child(4) a { transition-delay: .15s; }
 @media (max-width: 640px) { .social { justify-items: center; } .chips { justify-content: center; } }
-@media (prefers-reduced-motion: reduce) { .chips a, .social-btn, .social-btn svg { transition: none; } }
 </style>
 
 <div class="grain" aria-hidden="true"></div>
@@ -452,7 +447,7 @@ footer .shell { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content:
 <script>
 document.documentElement.classList.add('js');
 (function () {
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reduce = false; // анимации работают всегда
 
   // Hero title: split into letters for the entrance
   var h1 = document.getElementById('h1');
